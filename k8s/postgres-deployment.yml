@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: postgres-deployment
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: postgres
+  template:
+    metadata:
+      labels:
+        component: postgres
+    spec:
+      # Allocates the storage
+      # Doesn't actually allow containers to use
+      volumes:
+        - name: postgres-storage
+          persistentVolumeClaim:
+            claimName: database-persistent-volume-claim
+      containers:
+        - name: postgres
+          image: postgres
+          ports:
+            - containerPort: 5432
+          # actually allows container to mount
+          volumeMounts:
+            #  name matches the name in volumes allocated to pod above
+            - name: postgres-storage
+              mountPath: /var/lib/postgresql/data
+              # Subpath is any data stored in mountPath is going
+              # to be stored inside a folder postgres in the persistant
+              # volume. Postgres specific.
+              subPath: postgres
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: pgpassword
+                  key: PGPASSWORD

@@ -3,6 +3,11 @@ sudo: required
 services:
   - docker
 
+env:
+  global:
+    - SHA=$(git rev-parse HEAD)
+    - CLOUDSDK_CORE_DISABLE_PROMPTS=1
+
 before_install:
   - openssl aes-256-cbc -K $encrypted_0c35eebf403c_key -iv $encrypted_0c35eebf403c_iv -in svc-account.json.enc -out svc-account.json -d
   # DL gcsdk
@@ -13,4 +18,19 @@ before_install:
   - gcloud components update kubectl
   # Authenticate (like IAM on aws)
   # Sensitive creds, never in source control
-  - gcloud auth activate-service-account --key-file service-account.json
+  - gcloud auth activate-service-account --key-file svc-account.json
+  # Would need to run these on gcloud to set up the cloud shell if you want to use it
+  - gcloud config set project pure-faculty-270721
+  - gcloud config set compute/zone us-west1-a
+  - gcloud container clusters get-credentials multi-cluster
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  - docker build -t theomjones/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true theomjones/docker-react npm run test
+
+deploy:
+  provider: script
+  script: bash ./deploy.sh
+  on:
+    branch: master

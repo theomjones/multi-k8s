@@ -27,7 +27,7 @@ before_install:
   - docker build -t theomjones/react-test -f ./client/Dockerfile.dev ./client
 
 script:
-  - docker run -e CI=true theomjones/docker-react npm run test
+  - docker run -e CI=true theomjones/react-test npm run test
 
 deploy:
   provider: script

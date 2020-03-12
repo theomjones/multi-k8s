@@ -24,7 +24,7 @@ spec:
               value: redis-cluster-ip-service
             - name: REDIS_PORT
               value: "6379"
-            - name: PG_USER
+            - name: PGUSER
               value: postgres
             - name: PGHOST
               value: postgres-cluster-ip-service
